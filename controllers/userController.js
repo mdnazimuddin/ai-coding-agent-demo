@@ -1,5 +1,9 @@
-const User = require('../models/User');
-const apiResponse = require('../utils/apiResponse');
+let UserModel;
+try {
+  UserModel = require('../models/userModel');
+} catch (e) {
+  UserModel = require('../models/User');
+}
 
 /**
  * @desc    Create a new user
@@ -8,74 +12,78 @@ const apiResponse = require('../utils/apiResponse');
  */
 const createUser = async (req, res, next) => {
   try {
-    const { name, email, phone, age, address, status } = req.body;
-
-    // Check if user already exists with the provided email
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      if (typeof apiResponse === 'function') {
-        return apiResponse(res, 409, 'User with this email already exists');
-      }
-      if (apiResponse && typeof apiResponse.errorResponse === 'function') {
-        return apiResponse.errorResponse(res, 409, 'User with this email already exists');
-      }
-      if (apiResponse && typeof apiResponse.error === 'function') {
-        return apiResponse.error(res, 409, 'User with this email already exists');
-      }
-      return res.status(409).json({
-        success: false,
-        message: 'User with this email already exists'
-      });
-    }
-
-    // Instantiate new User document
-    const user = new User({
-      name,
-      email,
-      phone,
-      age,
-      address,
-      status
-    });
-
-    // Persist to database
-    const savedUser = await user.save();
-
-    // Return 201 Created
-    if (typeof apiResponse === 'function') {
-      return apiResponse(res, 201, 'User created successfully', savedUser);
-    }
-    if (apiResponse && typeof apiResponse.successResponse === 'function') {
-      return apiResponse.successResponse(res, 201, 'User created successfully', savedUser);
-    }
-    if (apiResponse && typeof apiResponse.success === 'function') {
-      return apiResponse.success(res, 201, 'User created successfully', savedUser);
-    }
+    const { name, email, age, status } = req.body;
+    const user = await UserModel.create({ name, email, age, status });
     return res.status(201).json({
       success: true,
-      message: 'User created successfully',
-      data: savedUser
+      data: user
     });
   } catch (error) {
-    if (error.code === 11000) {
-      if (typeof apiResponse === 'function') {
-        return apiResponse(res, 409, 'User with this email already exists');
-      }
-      if (apiResponse && typeof apiResponse.errorResponse === 'function') {
-        return apiResponse.errorResponse(res, 409, 'User with this email already exists');
-      }
-      if (apiResponse && typeof apiResponse.error === 'function') {
-        return apiResponse.error(res, 409, 'User with this email already exists');
-      }
-      return res.status(409).json({
-        success: false,
-        message: 'User with this email already exists'
+    return next(error);
+  }
+};
+
+/**
+ * @desc    Get all users with search, filter, sort, and pagination
+ * @route   GET /api/v1/users
+ * @access  Public
+ */
+const getAllUsers = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const queryContext = {};
+
+    if (req.query.search) {
+      queryContext.name = { $regex: req.query.search, $options: 'i' };
+    }
+
+    if (req.query.status) {
+      queryContext.status = req.query.status;
+    }
+
+    let sortOptions = {};
+    if (req.query.sortBy) {
+      const order = req.query.order === 'desc' ? -1 : 1;
+      sortOptions[req.query.sortBy] = order;
+    } else {
+      sortOptions = { createdAt: -1 };
+    }
+
+    const total = await UserModel.countDocuments(queryContext);
+
+    if (total === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        totalPages: 0,
+        currentPage: page,
+        data: []
       });
     }
-    next(error);
+
+    const users = await UserModel.find(queryContext)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return res.status(200).json({
+      success: true,
+      count: total,
+      totalPages,
+      currentPage: page,
+      data: users
+    });
+  } catch (error) {
+    return next(error);
   }
 };
 
 module.exports = {
-  createUser
+  createUser,
+  getAllUsers
 };
