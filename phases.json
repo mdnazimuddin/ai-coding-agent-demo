@@ -639,6 +639,13 @@
           "Routing structure mirrors the `/api/users` REST paths documented in Section 4.2."
         ],
         "status": "pending"
+      },
+      "status": "COMPLETED",
+      "completed": true,
+      "completedAt": "2026-09-23T11:23:57.032Z",
+      "verification": {
+        "status": "PASSED",
+        "verified": true
       }
     },
     {
