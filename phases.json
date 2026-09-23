@@ -474,6 +474,13 @@
           "Controller maps directly to API 1 requirements, sending 201 explicitly."
         ],
         "status": "pending"
+      },
+      "status": "COMPLETED",
+      "completed": true,
+      "completedAt": "2026-09-23T11:22:12.472Z",
+      "verification": {
+        "status": "PASSED",
+        "verified": true
       }
     },
     {
