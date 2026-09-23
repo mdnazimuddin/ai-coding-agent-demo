@@ -1,8 +1,12 @@
-let UserModel;
+let User;
 try {
-  UserModel = require('../models/userModel');
+  User = require('../models/userModel');
 } catch (e) {
-  UserModel = require('../models/User');
+  try {
+    User = require('../models/User');
+  } catch (err) {
+    User = require('../models/user.model');
+  }
 }
 
 /**
@@ -12,78 +16,145 @@ try {
  */
 const createUser = async (req, res, next) => {
   try {
-    const { name, email, age, status } = req.body;
-    const user = await UserModel.create({ name, email, age, status });
-    return res.status(201).json({
+    const user = await User.create(req.body);
+    res.status(201).json({
       success: true,
       data: user
     });
   } catch (error) {
-    return next(error);
+    next(error);
   }
 };
 
 /**
- * @desc    Get all users with search, filter, sort, and pagination
+ * @desc    Get all users with filtering, sorting, and pagination
  * @route   GET /api/v1/users
  * @access  Public
  */
 const getAllUsers = async (req, res, next) => {
   try {
+    const reqQuery = { ...req.query };
+    const removeFields = ['select', 'sort', 'page', 'limit'];
+    removeFields.forEach((param) => delete reqQuery[param]);
+
+    let queryStr = JSON.stringify(reqQuery);
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`);
+
+    let query = User.find(JSON.parse(queryStr));
+
+    // Field Selection
+    if (req.query.select) {
+      const fields = req.query.select.split(',').join(' ');
+      query = query.select(fields);
+    }
+
+    // Sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
-    const skip = (page - 1) * limit;
+    const startIndex = (page - 1) * limit;
+    const total = await User.countDocuments(JSON.parse(queryStr));
 
-    const queryContext = {};
+    query = query.skip(startIndex).limit(limit);
 
-    if (req.query.search) {
-      queryContext.name = { $regex: req.query.search, $options: 'i' };
-    }
+    const users = await query;
 
-    if (req.query.status) {
-      queryContext.status = req.query.status;
-    }
-
-    let sortOptions = {};
-    if (req.query.sortBy) {
-      const order = req.query.order === 'desc' ? -1 : 1;
-      sortOptions[req.query.sortBy] = order;
-    } else {
-      sortOptions = { createdAt: -1 };
-    }
-
-    const total = await UserModel.countDocuments(queryContext);
-
-    if (total === 0) {
-      return res.status(200).json({
-        success: true,
-        count: 0,
-        totalPages: 0,
-        currentPage: page,
-        data: []
-      });
-    }
-
-    const users = await UserModel.find(queryContext)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(limit);
-
-    const totalPages = Math.ceil(total / limit);
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      count: total,
-      totalPages,
-      currentPage: page,
+      count: users.length,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
       data: users
     });
   } catch (error) {
-    return next(error);
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get single user by ID
+ * @route   GET /api/v1/users/:id
+ * @access  Public
+ */
+const getUserById = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      const error = new Error(`User not found with id of ${req.params.id}`);
+      error.statusCode = 404;
+      return next(error);
+    }
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Update user by ID
+ * @route   PUT /api/v1/users/:id
+ * @access  Public
+ */
+const updateUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
+    if (!user) {
+      const error = new Error(`User not found with id of ${req.params.id}`);
+      error.statusCode = 404;
+      return next(error);
+    }
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Delete user by ID
+ * @route   DELETE /api/v1/users/:id
+ * @access  Public
+ */
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      const error = new Error(`User not found with id of ${req.params.id}`);
+      error.statusCode = 404;
+      return next(error);
+    }
+    res.status(200).json({
+      success: true,
+      data: {}
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
 module.exports = {
   createUser,
-  getAllUsers
+  getUsers: getAllUsers,
+  getAllUsers,
+  getUser: getUserById,
+  getUserById,
+  updateUser,
+  deleteUser
 };
