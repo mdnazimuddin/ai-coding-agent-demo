@@ -1,21 +1,12 @@
 {
   "name": "simple-crud-api",
   "version": "1.0.0",
-  "description": "Simple CRUD REST API with Express and Mongoose",
+  "description": "A simple CRUD REST API with Express and Mongoose",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": [
-    "express",
-    "mongoose",
-    "crud",
-    "api",
-    "rest"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
