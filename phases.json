@@ -363,6 +363,13 @@
           "The exact constraints defined in 3.1 & 5.1 are represented accurately in the Mongoose bounds."
         ],
         "status": "pending"
+      },
+      "status": "COMPLETED",
+      "completed": true,
+      "completedAt": "2026-09-23T11:20:48.921Z",
+      "verification": {
+        "status": "PASSED",
+        "verified": true
       }
     },
     {
