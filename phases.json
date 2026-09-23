@@ -299,6 +299,13 @@
           "The error handler structure explicitly supports standard codes and Mongoose-specific DB errors."
         ],
         "status": "pending"
+      },
+      "status": "COMPLETED",
+      "completed": true,
+      "completedAt": "2026-09-23T11:20:18.028Z",
+      "verification": {
+        "status": "PASSED",
+        "verified": true
       }
     },
     {
