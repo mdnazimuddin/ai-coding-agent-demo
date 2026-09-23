@@ -751,6 +751,13 @@
           "Demo dataset reliably resets application state for E2E tests."
         ],
         "status": "pending"
+      },
+      "status": "COMPLETED",
+      "completed": true,
+      "completedAt": "2026-09-23T11:25:26.248Z",
+      "verification": {
+        "status": "PASSED",
+        "verified": true
       }
     },
     {
