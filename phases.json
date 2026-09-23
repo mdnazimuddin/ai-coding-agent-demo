@@ -1,0 +1,904 @@
+{
+  "version": 1,
+  "project": {
+    "name": "Simple CRUD Application",
+    "summary": "A Node.js RESTful API application for basic user data management with CRUD operations, utilizing Express.js and MongoDB. The system includes input validation, standardized error handling, filtering, sorting, and pagination.",
+    "technology": [
+      "Node.js",
+      "Express.js",
+      "MongoDB",
+      "Mongoose",
+      "dotenv",
+      "cors",
+      "express-validator"
+    ],
+    "has_ui": false
+  },
+  "totalPhases": 18,
+  "phases": [
+    {
+      "phaseIndex": 1,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-001",
+        "category": "PROJECT STRUCTURE",
+        "title": "Initialize Repository and Directory Structure",
+        "objective": "Define the base project folder hierarchy, initialize Node.js metadata, and create the .gitignore file.",
+        "requirements": [
+          "REQ-001"
+        ],
+        "dependencies": [],
+        "input": [
+          "PRD Section 2.3 (Folder Structure)",
+          "PRD Section 11.1 (Development Setup Steps)"
+        ],
+        "process": [
+          "1. Create the project root directory.",
+          "2. Run npm init -y to generate package.json.",
+          "3. Create necessary directories: config, controllers, models, routes, middlewares, utils.",
+          "4. Generate a .gitignore file excluding node_modules/ and .env."
+        ],
+        "output": [
+          "Project directory structured.",
+          "package.json file.",
+          ".gitignore file."
+        ],
+        "files_to_create": [
+          "package.json",
+          ".gitignore",
+          "config/.gitkeep",
+          "controllers/.gitkeep",
+          "models/.gitkeep",
+          "routes/.gitkeep",
+          "middlewares/.gitkeep",
+          "utils/.gitkeep"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Verify package.json is valid JSON structure.",
+          "Verify all declared directories exist.",
+          "Verify .gitignore includes 'node_modules' and '.env'."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "Folder structure strictly matches the PRD specification."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 2,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-002",
+        "category": "CONFIGURATION / ENVIRONMENT",
+        "title": "Install Requirements and Seed Configuration",
+        "objective": "Install all NPM dependencies and construct environment configuration templates.",
+        "requirements": [
+          "REQ-002",
+          "REQ-003",
+          "REQ-020"
+        ],
+        "dependencies": [
+          "PHASE-001"
+        ],
+        "input": [
+          "PRD Section 2.2 (Dependencies)",
+          "PRD Section 8.1 (.env File)"
+        ],
+        "process": [
+          "1. Install runtime dependencies: express, mongoose, dotenv, cors, express-validator.",
+          "2. Install dev dependencies: nodemon.",
+          "3. Update package.json scripts with 'start': 'node server.js' and 'dev': 'nodemon server.js'.",
+          "4. Create .env file containing PORT, NODE_ENV, MONGODB_URI, and API_PREFIX.",
+          "5. Create .env.example matching .env parameters without secrets."
+        ],
+        "output": [
+          "package.json updated with dependencies and scripts.",
+          "node_modules generated.",
+          "package-lock.json generated.",
+          ".env created.",
+          ".env.example created."
+        ],
+        "files_to_create": [
+          ".env",
+          ".env.example"
+        ],
+        "files_to_modify": [
+          "package.json"
+        ],
+        "verification": [
+          "Check dependencies in package.json against expected versions (^4.18.x express, etc.).",
+          "Check npm run scripts correctly configured.",
+          ".env and .env.example files exist."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "NPM dependencies resolvable.",
+          ".env.example serves as a reliable template for fresh installations."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 3,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-003",
+        "category": "DATABASE DESIGN",
+        "title": "Database Connection Configuration",
+        "objective": "Create database connection script utilizing Mongoose.",
+        "requirements": [
+          "REQ-004"
+        ],
+        "dependencies": [
+          "PHASE-002"
+        ],
+        "input": [
+          "PRD Section 10.1 (config/db.js)",
+          "Environment variables (MONGODB_URI)"
+        ],
+        "process": [
+          "1. Write config/db.js module.",
+          "2. Import mongoose.",
+          "3. Create an asynchronous connectDB function.",
+          "4. Attempt mongoose.connect with process.env.MONGODB_URI.",
+          "5. Add console mappings indicating Success or Failure.",
+          "6. If connection fails, force process.exit(1)."
+        ],
+        "output": [
+          "config/db.js with strict Mongoose connection logic."
+        ],
+        "files_to_create": [
+          "config/db.js"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Script exports a valid async function.",
+          "Running the script separately attempts connection to MongoDB."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-DB-01",
+            "type": "positive",
+            "scenario": "Execute connectDB() with local mongodb daemon running.",
+            "expected_result": "Terminal output confirms successful connection."
+          },
+          {
+            "id": "TC-DB-02",
+            "type": "negative",
+            "scenario": "Execute connectDB() with invalid URI.",
+            "expected_result": "Function catches exception and emits process.exit(1)."
+          }
+        ],
+        "definition_of_done": [
+          "Application throws standard OS level exit on missing database configuration."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 4,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-004",
+        "category": "BACKEND DEVELOPMENT",
+        "title": "Core API Utilities & Formatters",
+        "objective": "Create a unified API response generator function ensuring the API maintains standard output shapes.",
+        "requirements": [
+          "REQ-006"
+        ],
+        "dependencies": [
+          "PHASE-001"
+        ],
+        "input": [
+          "PRD Section 4.3 (Success Response formats)"
+        ],
+        "process": [
+          "1. Create utils/apiResponse.js.",
+          "2. Export a function `successResponse(res, statusCode, message, data, extraParams)`.",
+          "3. Design the payload output to contain 'success: true', 'message', 'data', and conditionally spread 'extraParams' for pagination meta (count, totalPages, currentPage)."
+        ],
+        "output": [
+          "utils/apiResponse.js implemented."
+        ],
+        "files_to_create": [
+          "utils/apiResponse.js"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Utility correctly formats JSON shapes matching PRD Section 4.3."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-UTILS-01",
+            "type": "unit",
+            "scenario": "Format a basic User response payload.",
+            "expected_result": "Returns { success: true, message: 'X', data: {...} }"
+          },
+          {
+            "id": "TC-UTILS-02",
+            "type": "unit",
+            "scenario": "Format a paginated list response payload.",
+            "expected_result": "Returns { success: true, message: 'X', data: [], count: 0, totalPages: 0, currentPage: 1 }"
+          }
+        ],
+        "definition_of_done": [
+          "All success formats in PRD can be replicated easily by this utility."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 5,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-005",
+        "category": "ERROR HANDLING",
+        "title": "Global Error Middleware Implementation",
+        "objective": "Centralize all error reporting into a single middleware returning the structural JSON defined in PRD Section 6.2.",
+        "requirements": [
+          "REQ-007"
+        ],
+        "dependencies": [
+          "PHASE-004"
+        ],
+        "input": [
+          "PRD Section 6.1 (HTTP Codes)",
+          "PRD Section 6.2 (Standard Error Response)"
+        ],
+        "process": [
+          "1. Create middlewares/errorHandler.js.",
+          "2. Implement Express error handler signature `(err, req, res, next)`.",
+          "3. Map Mongoose CastError (invalid ObjectId) to 400 Status + custom message.",
+          "4. Map Mongoose MongoServerError code 11000 (duplicate key) to 409 Status + 'Resource already exists' message.",
+          "5. Catch standard validation errors and map to 400 (if thrown down the line).",
+          "6. Default to 500 'Internal Server Error' for untrapped exceptions.",
+          "7. Ensure output schema: { success: false, message: '...', error: { code: HTTP_CODE, details: '...' } }."
+        ],
+        "output": [
+          "middlewares/errorHandler.js logic finalized."
+        ],
+        "files_to_create": [
+          "middlewares/errorHandler.js"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "File exports a valid middleware matching Express documentation for Error Handlers."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "The error handler structure explicitly supports standard codes and Mongoose-specific DB errors."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 6,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-006",
+        "category": "DATABASE IMPLEMENTATION",
+        "title": "Mongoose User Schema Mapping",
+        "objective": "Translate the ERD and Data model into an enforced Mongoose Schema.",
+        "requirements": [
+          "REQ-005"
+        ],
+        "dependencies": [
+          "PHASE-002"
+        ],
+        "input": [
+          "PRD Section 3.1 (User Schema)",
+          "PRD Section 5.1 (Input Validation Constraints)"
+        ],
+        "process": [
+          "1. Create models/userModel.js.",
+          "2. Define userSchema with fields for `name`, `email`, `phone`, `age`, `address`, `status`.",
+          "3. Apply constraints: name (required, trim, min:2, max:50), email (required, unique, lowercase), age (min:1, max:150).",
+          "4. Apply defaults: status ('active'), enums: ('active', 'inactive').",
+          "5. Map timestamps using Mongoose `{ timestamps: true }` keeping compatibility with createdAt and updatedAt.",
+          "6. Export the mongoose model."
+        ],
+        "output": [
+          "models/userModel.js ready for DB interaction."
+        ],
+        "files_to_create": [
+          "models/userModel.js"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Verify unique index is natively set on email.",
+          "Verify timestamps are enabled natively in configurations."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-SCHEMA-01",
+            "type": "database",
+            "scenario": "Instantiate User model with valid payload.",
+            "expected_result": "Model validates without errors."
+          },
+          {
+            "id": "TC-SCHEMA-02",
+            "type": "negative",
+            "scenario": "Instantiate User model missing name or email.",
+            "expected_result": "Mongoose throws generic Required ValidationError."
+          }
+        ],
+        "definition_of_done": [
+          "The exact constraints defined in 3.1 & 5.1 are represented accurately in the Mongoose bounds."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 7,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-007",
+        "category": "VALIDATION",
+        "title": "Express Validation Middleware Definitions",
+        "objective": "Pre-flight request validation constraints strictly preventing invalid formats hitting the controller.",
+        "requirements": [
+          "REQ-008",
+          "REQ-009"
+        ],
+        "dependencies": [
+          "PHASE-002"
+        ],
+        "input": [
+          "PRD Section 5.1 (Input Validation)",
+          "PRD Section 5.2 (ID Validation)",
+          "PRD Section 4.3 (Error Response for validations)"
+        ],
+        "process": [
+          "1. Create middlewares/validator.js.",
+          "2. Create an express-validator array string `createUserValidation` for POST payloads.",
+          "3. Rules: name (notEmpty, isLength:2-50), email (isEmail), phone (optional, isMobilePhone optionally but generic regex if needed or just string), age (optional, isInt 1-150), address (optional, isLength max 200), status (optional, isIn active/inactive).",
+          "4. Implement `updateUserValidation` (similar, but fields are optional).",
+          "5. Implement `validateObjectId` middleware verifying standard 24 char hex strings for Mongo params via regEx or mongoose.Types.ObjectId.isValid.",
+          "6. Create a generic `validate` middleware capturing `validationResult(req)`. If errors exist, format it EXACTLY like PRD Error Response (400) incorporating multiple field errors."
+        ],
+        "output": [
+          "middlewares/validator.js containing parameter arrays and validation result traps."
+        ],
+        "files_to_create": [
+          "middlewares/validator.js"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Custom validation trap returns the { success, message, errors: [ { field, message } ] } schema from PRD 4.3."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-VAL-01",
+            "type": "validation",
+            "scenario": "Pass request with invalid email format to validator layer.",
+            "expected_result": "Middleware aborts and sends 400 Bad Request with Validation Error Array payload."
+          }
+        ],
+        "definition_of_done": [
+          "All data validation prevents malformed requests before Controller execution starts."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 8,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-008",
+        "category": "BUSINESS LOGIC",
+        "title": "User Controller - Create Action",
+        "objective": "Handle insertion logic of new users and conflict detection.",
+        "requirements": [
+          "REQ-010"
+        ],
+        "dependencies": [
+          "PHASE-004",
+          "PHASE-006"
+        ],
+        "input": [
+          "PRD Section 4.3 - API 1 (Create User)",
+          "User Model"
+        ],
+        "process": [
+          "1. Create controllers/userController.js.",
+          "2. Implement async `createUser(req, res, next)`.",
+          "3. Extract `{ name, email, phone, age, address, status }` from req.body.",
+          "4. Check for existing email in DB (return 409 Conflict early using pre-defined PRD Error schema).",
+          "5. Generate new User Document.",
+          "6. Save to DB.",
+          "7. Return 201 using apiResponse util."
+        ],
+        "output": [
+          "controllers/userController.js with createUser method."
+        ],
+        "files_to_create": [
+          "controllers/userController.js"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Method captures duplicates correctly and executes successful insertions."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "Controller maps directly to API 1 requirements, sending 201 explicitly."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 9,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-009",
+        "category": "BUSINESS LOGIC",
+        "title": "User Controller - Get All Action (Base + Search/Filter)",
+        "objective": "Build extensible list query handler with advanced modifiers (search, filter, sort, pagination).",
+        "requirements": [
+          "REQ-011",
+          "REQ-012",
+          "REQ-013",
+          "REQ-014",
+          "REQ-015"
+        ],
+        "dependencies": [
+          "PHASE-008"
+        ],
+        "input": [
+          "PRD Section 4.3 - API 2 (Get All Users)"
+        ],
+        "process": [
+          "1. Edit controllers/userController.js.",
+          "2. Implement async `getAllUsers(req, res, next)`.",
+          "3. Parse Pagination: req.query.page (default 1), req.query.limit (default 10).",
+          "4. Parse Search: req.query.search. Build $regex query on `name` field if present.",
+          "5. Parse Filter: req.query.status. Append to DB query context if present.",
+          "6. Parse Sort: req.query.sortBy, req.query.order. Apply `sort({ [sortBy]: order === 'desc' ? -1 : 1 })`.",
+          "7. Run `UserModel.countDocuments(queryContext)` for metadata.",
+          "8. Run `UserModel.find(queryContext) ... limit & skip execution`.",
+          "9. Evaluate output. If count=0, dispatch empty response schema. Otherwise, success with extraParams = { count, totalPages, currentPage }."
+        ],
+        "output": [
+          "`getAllUsers` controller function complete."
+        ],
+        "files_to_create": [],
+        "files_to_modify": [
+          "controllers/userController.js"
+        ],
+        "verification": [
+          "Ensure query objects dynamically construct based on provided vs missing query params."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-CTRL-01",
+            "type": "unit",
+            "scenario": "Execute handler passing limit=5.",
+            "expected_result": "Applies .limit(5) to MongoDB find operation."
+          }
+        ],
+        "definition_of_done": [
+          "Empty Database requests yield gracefully without causing native errors."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 10,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-010",
+        "category": "BUSINESS LOGIC",
+        "title": "User Controller - Get Single, Update, Delete Actions",
+        "objective": "Implement the ID-bound CRUD endpoints managing individual retrieval, mutation, and deletion.",
+        "requirements": [
+          "REQ-016",
+          "REQ-017",
+          "REQ-018"
+        ],
+        "dependencies": [
+          "PHASE-009"
+        ],
+        "input": [
+          "PRD Section 4.3 (API 3, 4, 5)"
+        ],
+        "process": [
+          "1. Implement async `getUserById(req, res, next)`. Find by `req.params.id`. Check if null -> throw 404 (using next(error)). Retun 200 payload.",
+          "2. Implement async `updateUser(req, res, next)`. Call `UserModel.findByIdAndUpdate(id, body, { new: true, runValidators: true })`. Check null -> throw 404. Return 200 payload.",
+          "3. Implement async `deleteUser(req, res, next)`. Call `UserModel.findByIdAndDelete(id)`. Check null -> throw 404. Structure final payload matching exactly API 5 specifications."
+        ],
+        "output": [
+          "Full suite of User Controller features fully constructed."
+        ],
+        "files_to_create": [],
+        "files_to_modify": [
+          "controllers/userController.js"
+        ],
+        "verification": [
+          "Check that findByIdAndUpdate passes {new: true} flag to get the mutated record back."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "Controllers encapsulate logic accurately with error propagation handled safely by calling `next(err)`."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 11,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-011",
+        "category": "API DESIGN",
+        "title": "Router Configuration & Webbing",
+        "objective": "Wire HTTP request verbs and paths to their dedicated validation and controlling middlewares.",
+        "requirements": [
+          "REQ-020"
+        ],
+        "dependencies": [
+          "PHASE-007",
+          "PHASE-010"
+        ],
+        "input": [
+          "middlewares/validator.js",
+          "controllers/userController.js"
+        ],
+        "process": [
+          "1. Create routes/userRoutes.js.",
+          "2. Initialize `express.Router()`.",
+          "3. Map `POST /` to `createUserValidation`, `validate`, `createUser`.",
+          "4. Map `GET /` to `getAllUsers`.",
+          "5. Map `GET /:id` to `validateObjectId`, `getUserById`.",
+          "6. Map `PUT /:id` to `validateObjectId`, `updateUserValidation`, `validate`, `updateUser`.",
+          "7. Map `DELETE /:id` to `validateObjectId`, `deleteUser`.",
+          "8. Export the router structure."
+        ],
+        "output": [
+          "routes/userRoutes.js linked securely to domain objects."
+        ],
+        "files_to_create": [
+          "routes/userRoutes.js"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Syntactic validation of Router instance.",
+          "All references mapped correctly without missing imported dependencies."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "Routing structure mirrors the `/api/users` REST paths documented in Section 4.2."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 12,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-012",
+        "category": "SYSTEM ARCHITECTURE",
+        "title": "Application Entry Point Assembly (server.js)",
+        "objective": "Bring all individual subsystems together in the main executable file allowing HTTP traffic.",
+        "requirements": [
+          "REQ-004",
+          "REQ-010"
+        ],
+        "dependencies": [
+          "PHASE-003",
+          "PHASE-005",
+          "PHASE-011"
+        ],
+        "input": [
+          "PRD Section 7.1 (Request-Response Flow)",
+          "Environment variables .env"
+        ],
+        "process": [
+          "1. Create root `server.js`.",
+          "2. Import dependencies: express, dotenv, cors, db connector, error handlers, routing tree.",
+          "3. Initialize express().",
+          "4. Load env vars `dotenv.config()`.",
+          "5. Connect Database via injected connectDB().",
+          "6. Inject global top-level middlewares: `cors()`, `express.json()`, `express.urlencoded({extended:true})`.",
+          "7. Mount routing: `app.use(process.env.API_PREFIX + '/users', userRoutes)`.",
+          "8. Set unhandled 404 routes catch-all.",
+          "9. Inject terminating global error handler middleware `app.use(errorHandler)`.",
+          "10. Configure `app.listen(PORT)` matching PRD text."
+        ],
+        "output": [
+          "server.js functional."
+        ],
+        "files_to_create": [
+          "server.js"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Executing `node server.js` binds correctly to process.env.PORT without immediately crashing."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-SRV-01",
+            "type": "integration",
+            "scenario": "Start express app resolving unbound endpoint.",
+            "expected_result": "App responds gracefully with generic 404 JSON, preventing stackdumps."
+          }
+        ],
+        "definition_of_done": [
+          "Entry point mirrors architecture specs strictly from Request to Controller to Error catchers."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 13,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-013",
+        "category": "DEMO DATA CREATION",
+        "title": "Provide Development/Test Dataset generator",
+        "objective": "Build a quick script to seed default mock records easing QA, regression testing, and verification.",
+        "requirements": [],
+        "dependencies": [
+          "PHASE-012"
+        ],
+        "input": [
+          "PRD Section 4.3 (Data Examples)"
+        ],
+        "process": [
+          "1. Create `utils/seed.js` script.",
+          "2. Establish Mongo connection natively inside.",
+          "3. Truncate Collection `UserModel.deleteMany({})`.",
+          "4. Inject payload examples (Rahim Ahmed, Karim Hossain) reflecting Section 4.3.",
+          "5. Print success output and cleanly destruct connection."
+        ],
+        "output": [
+          "utils/seed.js available for developers."
+        ],
+        "files_to_create": [
+          "utils/seed.js"
+        ],
+        "files_to_modify": [
+          "package.json"
+        ],
+        "verification": [
+          "Run `node utils/seed.js` and verify via MongoDB UI or standard terminal that values exist."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "Demo dataset reliably resets application state for E2E tests."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 14,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-014",
+        "category": "API TESTING",
+        "title": "Positive Execution Paths (CRUD Success)",
+        "objective": "Verify the basic functional behavior corresponding accurately against valid test scenarios.",
+        "requirements": [
+          "REQ-010",
+          "REQ-011",
+          "REQ-016",
+          "REQ-017",
+          "REQ-018"
+        ],
+        "dependencies": [
+          "PHASE-013"
+        ],
+        "input": [
+          "PRD Section 9.1 (Test Cases 1, 7, 8, 9, 12, 15)"
+        ],
+        "process": [
+          "1. Boot server to isolated memory test env.",
+          "2. Dispatch POST /api/users validating 201 Created and ID mapping.",
+          "3. Dispatch GET /api/users verifying data array matches length + schema.",
+          "4. Dispatch GET /api/users?page=1&limit=5 verifying structural array output counts.",
+          "5. Dispatch PUT /api/users/<id> mutating values.",
+          "6. Dispatch DELETE /api/users/<id> verifying deletion.",
+          "7. Retest GET /<id> verifying subsequent 404 absence."
+        ],
+        "output": [
+          "Passing execution matrix outputs."
+        ],
+        "files_to_create": [],
+        "files_to_modify": [],
+        "verification": [
+          "Ensure standard HTTP 20X series returned as expected for each phase."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-API-01",
+            "type": "positive",
+            "scenario": "Execute API sequence Create -> Verify Data -> Edit -> Delete -> Verify Absence.",
+            "expected_result": "Sequence passes exactly matching Section 9.1 expectation status codes."
+          }
+        ],
+        "definition_of_done": [
+          "No internal business logic faults are produced under nominal ideal parameters."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 15,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-015",
+        "category": "ERROR SCENARIO TESTING",
+        "title": "Negative Path Boundaries & Formats",
+        "objective": "Hammer validation limits covering bad user behaviors to guarantee proper handler intercepts.",
+        "requirements": [
+          "REQ-007",
+          "REQ-008",
+          "REQ-009"
+        ],
+        "dependencies": [
+          "PHASE-014"
+        ],
+        "input": [
+          "PRD Section 9.1 (Test Cases 2-6, 10-11, 13-14, 16)"
+        ],
+        "process": [
+          "1. Dispatch POST /api/users excluding required fields. Verify Response Code 400 array structure.",
+          "2. Dispatch POST /api/users inserting existing email. Verify Code 409 'duplicate'.",
+          "3. Dispatch GET /api/users/<invalidHex>. Verify Code 400 bad format exception.",
+          "4. Dispatch PUT /api/users/<validHexNotExisting>. Verify Code 404 Not Found.",
+          "5. Verify JSON response syntax perfectly aligns to PRD section 6.2 schema."
+        ],
+        "output": [
+          "Verified negative scenarios yielding proper JSON instead of crashing unhandled Node instances."
+        ],
+        "files_to_create": [],
+        "files_to_modify": [],
+        "verification": [
+          "Check that no validation flaws result in HTML/text Express default errors (meaning generic error hander trapped it)."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-API-ERR-1",
+            "type": "negative",
+            "scenario": "Trigger unique index overlap.",
+            "expected_result": "Yield exactly PRD defined 409."
+          }
+        ],
+        "definition_of_done": [
+          "The system robustly defends itself strictly matching Error Handling spec."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 16,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-016",
+        "category": "DOCUMENTATION",
+        "title": "Postman Collection Export",
+        "objective": "Build out the operational Postman JSON configuration standardizing external consumer testing.",
+        "requirements": [
+          "REQ-019"
+        ],
+        "dependencies": [
+          "PHASE-012"
+        ],
+        "input": [
+          "PRD Section 9.2 (Postman Collection Structure)",
+          "PRD Section 15.1 (Postman Environments)"
+        ],
+        "process": [
+          "1. Generate CRUD_App.postman_collection.json locally.",
+          "2. Add variables `{{BASE_URL}}`.",
+          "3. Scaffold nested folders exactly matching 'Users' and 'Error Cases'.",
+          "4. Provide sample bodies linking to PRD Section 4.3 mockups.",
+          "5. Place in root documentation directory to ensure deliverables exist."
+        ],
+        "output": [
+          "CRUD_App.postman_collection.json file created."
+        ],
+        "files_to_create": [
+          "docs/CRUD_App.postman_collection.json"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "Ensure file is valid non-corrupted JSON loadable in postman software."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "Team leads can import template and instantly interact with developer endpoints."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 17,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-017",
+        "category": "DOCUMENTATION",
+        "title": "Update Main README Context",
+        "objective": "Produce readable text outlining instructions wrapping architecture decisions for incoming engineers.",
+        "requirements": [
+          "REQ-020"
+        ],
+        "dependencies": [
+          "PHASE-012"
+        ],
+        "input": [
+          "PRD Section 14 (Acceptance Criteria)",
+          "PRD Section 15.3 (Commands)"
+        ],
+        "process": [
+          "1. Delete existing mock text inside standard README.md.",
+          "2. Add PRD Project overview and scope limits.",
+          "3. Provide strict installation + startup commands (npm run dev).",
+          "4. Include environment variables mock configuration block.",
+          "5. Outline basic endpoints with curl/http formats as a shortcut index."
+        ],
+        "output": [
+          "README.md robustly formatted."
+        ],
+        "files_to_create": [
+          "README.md"
+        ],
+        "files_to_modify": [],
+        "verification": [
+          "File explicitly contains standard run instructions and matches repo expectations."
+        ],
+        "test_cases": [],
+        "definition_of_done": [
+          "Repository looks professional on display in a Version Control hub."
+        ],
+        "status": "pending"
+      }
+    },
+    {
+      "phaseIndex": 18,
+      "totalPhases": 18,
+      "phase": {
+        "id": "PHASE-018",
+        "category": "FINAL REQUIREMENT COMPLIANCE AUDIT",
+        "title": "System Output Audit",
+        "objective": "Compare finished codebase explicitly line-for-line mapping back into original PRD to sign-off versions.",
+        "requirements": [
+          "REQ-020"
+        ],
+        "dependencies": [
+          "PHASE-015",
+          "PHASE-016",
+          "PHASE-017"
+        ],
+        "input": [
+          "PRD Section 14 (Acceptance Criteria Checkboxes)"
+        ],
+        "process": [
+          "1. Execute `npm test` verifying coverage tools or basic internal validators.",
+          "2. Iterate over Section 14 (all CRUD endpoints active? Input val active? Mongo saving data?).",
+          "3. Flag missing behaviors.",
+          "4. Ensure `node_modules` remains out of VC."
+        ],
+        "output": [
+          "Final Audit logs signaling Version 1.0 clearance."
+        ],
+        "files_to_create": [],
+        "files_to_modify": [],
+        "verification": [
+          "Compare working repo state safely meeting all original requirements."
+        ],
+        "test_cases": [
+          {
+            "id": "TC-AUDIT-01",
+            "type": "regression",
+            "scenario": "Execute full test-suite checking for unintended overrides globally.",
+            "expected_result": "100% Endpoints act in isolated stable manner."
+          }
+        ],
+        "definition_of_done": [
+          "Phase signals immediate readiness for platform deployment environments (Render, Vercel, Railway)."
+        ],
+        "status": "pending"
+      }
+    }
+  ]
+}
